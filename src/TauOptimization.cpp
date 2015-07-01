@@ -6,7 +6,7 @@ void TauOptimization::Init(){
     
     for ( string& l : AllLabel()  ) 
     {
-        Book2D("TauOpt/Iso_Rho_" + l , "tau Iso delta Beta corrections",1000,0,200,1000,0,20);
+        Book2D("TauOpt/Iso_Rho_" + l , "tau Iso ",1000,0,200,1000,0,20);
         Book2D("TauOpt/Iso2_Rho_" + l , "tau Iso2 delta Beta corrections",1000,0,200,1000,0,20);
 
         Book("TauOpt/Iso_Match_"+l,"tau Iso",1000,0.,20.);
@@ -19,6 +19,11 @@ void TauOptimization::Init(){
 
         Book("TauOpt/Iso2_Match_"+l,"tau Iso Delta Beta",1500,-10,20.);
         Book("TauOpt/Iso2_Lead_"+l,"tau Iso Delta Beta",1500,-10,20.);
+
+        Book("TauOpt/IsoRcCorr_Match_"+l,"tau Iso",1500,-10.,20.);
+        Book("TauOpt/IsoRcCorr_Lead_"+l,"tau Iso",1500,-10.,20.);
+        Book("TauOpt/Rc_Lead_"+l,"tau Iso",1500,-10.,20.);
+        Book2D("TauOpt/IsoRcCorr_Rho_Lead" + l , "tau Iso ",1000,0,200,1500,-10,20);
     }
 }
 
@@ -38,11 +43,15 @@ int TauOptimization::analyze(Event* e, string systname)
 
     Fill2D("TauOpt/Iso_Rho_" + label,systname, e->Rho() ,t->iso, e->weight() ) ;
     Fill2D("TauOpt/Iso2_Rho_" + label,systname, e->Rho() ,t->iso2, e->weight() ) ;
+    Fill2D("TauOpt/IsoRcCorr_Rho_Lead" + label,systname, e->Rho() ,t->iso - t->rc, e->weight() ) ;
 
     Fill("TauOpt/Iso_Lead_"+label,systname, t->iso ,e ->weight() );
     Fill("TauOpt/Iso2_Lead_"+label,systname, t->iso2 ,e ->weight() );
     Fill("TauOpt/Pt_Lead_"+label,systname, t->Pt() ,e ->weight() );
     Fill("TauOpt/IsLeadMatched_"+label,systname, t->IsMatch() ,e ->weight() );
+
+    Fill("TauOpt/IsoRcCorr_Lead_"+label,systname, t->iso - t->rc ,e ->weight() );
+    Fill("TauOpt/Rc_Lead_"+label,systname, t->rc ,e ->weight() );
     // Find first match tau
     //
     int LeadTauMatched=-1;
@@ -62,6 +71,7 @@ int TauOptimization::analyze(Event* e, string systname)
         Fill("TauOpt/Iso_Match_"+label,systname, tM->iso ,e ->weight() );
         Fill("TauOpt/Iso2_Match_"+label,systname, tM->iso2 ,e ->weight() );
         Fill("TauOpt/Pt_Match_"+label,systname, tM->iso ,e ->weight() );
+        Fill("TauOpt/IsoRcCorr_Match_"+label,systname, t->iso - t->rc ,e ->weight() );
     }//end LeadTauMatched
 }
 
