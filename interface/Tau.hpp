@@ -28,6 +28,7 @@ class Tau: virtual public Object,
     bool id_ele =0;
     bool id_mu =0 ;
     bool id_iso = 0 ; // iso switch for isolation. In miniAOD they include more
+    bool id_isoL = 0 ; // iso switch for isolation. In miniAOD they include more
     int match ; // is matched with a gen tau
 
     virtual int IsTau() const ;
