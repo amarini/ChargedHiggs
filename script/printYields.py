@@ -19,6 +19,7 @@ class WsHandler():
         self.nuisances=[]
         self.processes=[]
         self.collapse={}
+	self.doStatNuisances=False
         pass
 
     def _getWorkspace(self):
@@ -51,7 +52,7 @@ class WsHandler():
         iter = argset.createIterator()
         nuis = iter.Next()
         while nuis :
-           if 'STAT' not in nuis.GetName():  ## don't look for STAT stuff
+           if doStatNuisances or 'STAT' not in nuis.GetName():  ## don't look for STAT stuff
               self.nuisances.append( nuis.GetName() ) 
            nuis = iter.Next()
         return self

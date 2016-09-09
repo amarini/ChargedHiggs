@@ -73,6 +73,8 @@ class Event{
     inline Lepton * GetBareLepton(unsigned iLepton) const { if (leps_.size() <= iLepton) return (Lepton*) NULL; return leps_[iLepton]; }
     inline Photon * GetBarePhoton(unsigned iPhoton) const { if (phos_.size() <= iPhoton) return (Photon*) NULL; return phos_[iPhoton]; }
 
+    inline vector<bool>& GetBareTrigger(){return triggerFired_;}
+
     // ---
     
     // This functions should check if the objects are valid

@@ -3,6 +3,9 @@
 #include "interface/Logger.hpp" // for static functions
 #include <memory>
 
+// print out for sync
+//#define SYNC 0
+
 void ChargedHiggsTauNu::Init()
 {
 
@@ -222,6 +225,23 @@ int ChargedHiggsTauNu::analyze(Event*e,string systname)
     cut.SetMask(MaxCut-1) ;
     cut.SetCut( Selection(e,true) );
 
+    #ifdef SYNC
+    if (SYNC>0){
+        CutSelector mymask(MaxCut);
+        mymask.reset();
+        mymask.SetCutBit(Trigger);
+        if ( e->IsTriggered("HLT_LooseIsoPFTau50_Trk30_eta2p1_MET80")  and not e->GetBareTrigger()[2] ) 
+            Log(__FUNCTION__,"SYNC-ERROR",Form("(%d,%d,%u) event triggered but should not",e->runNum(),e->lumiNum(),e->eventNum()));
+
+        if ( not e->IsTriggered("HLT_LooseIsoPFTau50_Trk30_eta2p1_MET80")  and e->GetBareTrigger()[2] ) 
+            Log(__FUNCTION__,"SYNC-ERROR",Form("(%d,%d,%u) event not triggered but should be",e->runNum(),e->lumiNum(),e->eventNum()));
+
+        if (cut.passMask(mymask) ) Log(__FUNCTION__,"SYNC",Form("(%d,%d,%u) Trigger",e->runNum(),e->lumiNum(),e->eventNum()) ) ; 
+        mymask.SetCutBit(OneTau);
+        if (cut.passMask(mymask) ) Log(__FUNCTION__,"SYNC",Form("(%d,%d,%u) Selected tau: pt=%e eta=%e",e->runNum(),e->lumiNum(),e->eventNum(),e->GetTau(0)->Pt(),e->GetTau(0)->Eta()) ) ; 
+    }
+    #endif
+
     // here I have the PV and the MET Filters
     if (e->IsRealData() ) 
         { 
@@ -231,7 +251,7 @@ int ChargedHiggsTauNu::analyze(Event*e,string systname)
             CutSelector mymask(MaxCut);
             mymask.reset();
 
-            mymask.SetCutBit(Trigger);; ++pos;
+            mymask.SetCutBit(Trigger); ++pos;
             if( cut.passMask( mymask ) ) Fill("ChargedHiggsTauNu/CutFlow/CutFlow2_"+label,systname,pos,e->weight());
 
             mymask.SetCutBit(OneTau);++pos;
