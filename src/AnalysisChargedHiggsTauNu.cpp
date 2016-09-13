@@ -4,7 +4,7 @@
 #include <memory>
 
 // print out for sync
-//#define SYNC 0
+//#define SYNC 1
 
 void ChargedHiggsTauNu::Init()
 {
@@ -149,8 +149,11 @@ unsigned ChargedHiggsTauNu::Selection(Event *e, bool direct, bool muon){
     if (direct and not muon) sub = e->GetTau(1);
     if (muon) sub=e->GetMuon(1);
 
+    if ( not muon and e->IsTriggered("HLT_LooseIsoPFTau50_Trk30_eta2p1_MET80"))  cut.SetCutBit(Trigger);
+    else if (muon and e->IsTriggered("HLT_IsoMu20")) cut.SetCutBit(Trigger);
+
     if (t== NULL) return cut.raw();
-    if (sub != NULL) return cut.raw(); //multiple taus
+    //if (sub != NULL) return cut.raw(); //multiple taus
 
     //----------------- ONE TAU -------------
     if (  // pt 20, Iso 1.5
@@ -179,8 +182,6 @@ unsigned ChargedHiggsTauNu::Selection(Event *e, bool direct, bool muon){
 
     //if ( not e->IsRealData() or e->IsTriggered("HLT_LooseIsoPFTau50_Trk30_eta2p1_MET120"))  cut.SetCutBit(Trigger);
     //if ( e->IsTriggered("HLT_LooseIsoPFTau50_Trk30_eta2p1_MET120"))  cut.SetCutBit(Trigger);
-    if ( not muon and e->IsTriggered("HLT_LooseIsoPFTau50_Trk30_eta2p1_MET80"))  cut.SetCutBit(Trigger);
-    else if (muon and e->IsTriggered("HLT_IsoMu20")) cut.SetCutBit(Trigger);
     //if ( e->IsTriggered("HLT_PFMET120_NoiseCleaned_BtagCSV0p72"))  cut.SetCutBit(Trigger);
 
     // if (e->IsRealData() and e->IsTriggered("HLT_LooseIsoPFTau50_Trk30_eta2p1_MET120") and not e->IsTriggered("HLT_LooseIsoPFTau50_Trk30_eta2p1_MET80") )
@@ -209,17 +210,22 @@ int ChargedHiggsTauNu::analyze(Event*e,string systname)
     string label = GetLabel(e);
 
     if(e->weight() == 0. ) cout <<"[ChargedHiggsTauNu]::[analyze]::[INFO] Even Weight is NULL !!"<< e->weight() <<endl;
+
+    #ifdef SYNC
+        if (not e->IsRealData() and e->GetWeight() ->GetBareSF() != 1.0)  Log(__FUNCTION__,"SYNC-ERROR",Form("SF at the beginning is not 1: %lf",e->GetWeight() ->GetBareSF()));
+    #endif
     
     e->ApplyTopReweight();
     e->ApplyWReweight();
 
-
+    #ifdef SYNC
+        double toprw = e->GetWeight()->GetBareSF();
+    #endif
 
     Fill("ChargedHiggsTauNu/CutFlow/CutFlow_"+label,systname,Total,e->weight());
     Fill("ChargedHiggsTauNu/NOne/NTaus_"+label,systname, e->Ntaus() ,e->weight());
 
     Tau *t= e->GetTau(0);
-
 
     cut.reset();
     cut.SetMask(MaxCut-1) ;
@@ -227,6 +233,13 @@ int ChargedHiggsTauNu::analyze(Event*e,string systname)
 
     #ifdef SYNC
     if (SYNC>0){
+        if(not e->IsRealData()) Log(__FUNCTION__,"SYNC",Form("(%d,%d,%u) MCWeight=%lf Xsec=%lf PU=%lf TopReweight=%lf",
+                    e->runNum(),e->lumiNum(),e->eventNum(),
+                    e->GetWeight()->GetBareMCWeight(),
+                    e->GetWeight()->GetBareMCXsec(),
+                    e->GetWeight()->GetBarePUWeight(),
+                    toprw)
+                );
         CutSelector mymask(MaxCut);
         mymask.reset();
         mymask.SetCutBit(Trigger);
@@ -239,6 +252,7 @@ int ChargedHiggsTauNu::analyze(Event*e,string systname)
         if (cut.passMask(mymask) ) Log(__FUNCTION__,"SYNC",Form("(%d,%d,%u) Trigger",e->runNum(),e->lumiNum(),e->eventNum()) ) ; 
         mymask.SetCutBit(OneTau);
         if (cut.passMask(mymask) ) Log(__FUNCTION__,"SYNC",Form("(%d,%d,%u) Selected tau: pt=%e eta=%e",e->runNum(),e->lumiNum(),e->eventNum(),e->GetTau(0)->Pt(),e->GetTau(0)->Eta()) ) ; 
+        if (cut.passMask(mymask) ) Log(__FUNCTION__,"SYNC",Form("(%d,%d,%u) Njets %d Bjets %d",e->runNum(),e->lumiNum(),e->eventNum(),e->Njets(), e->Bjets()) ) ; 
     }
     #endif
 
