@@ -183,6 +183,10 @@ void LoadNero::FillJets(){
         //
         j->SetNEMF(bj->nemf -> at(iJet) );
         j->SetCEMF(bj->cemf -> at(iJet) );
+        j->SetNHMF(bj->nhmf -> at(iJet) );
+        j->SetCHMF(bj->chmf -> at(iJet) );
+        j->SetNM(bj->nm -> at(iJet) );
+        j->SetCM(bj->cm -> at(iJet) );
         // JES
 #ifdef VERBOSE
         if(VERBOSE>1)Log(__FUNCTION__,"DEBUG",Form("Going to Fill Jes for jet: %d",iJet));
@@ -225,12 +229,12 @@ void LoadNero::FillJets(){
 #endif
         // I don't know why these are not available. Needs to be debugge
         if (tree_->GetBranchStatus("jetQglMult") ) j->SetQGLVar( "mult", bj -> qglMult -> at(iJet) );
-        //if (tree_->GetBranchStatus("jetQglNMult") ) j->SetQGLVar( "nmult", bj -> qglNMult -> at(iJet) );
-        //if (tree_->GetBranchStatus("jetQglCMult") ) j->SetQGLVar( "cmult", bj -> qglCMult -> at(iJet) );
+        if (tree_->GetBranchStatus("jetQglNMult") ) j->SetQGLVar( "nmult", bj -> qglNMult -> at(iJet) );
+        if (tree_->GetBranchStatus("jetQglCMult") ) j->SetQGLVar( "cmult", bj -> qglCMult -> at(iJet) );
         if (tree_->GetBranchStatus("jetQglPtD") ) j->SetQGLVar( "ptD", bj -> qglPtD -> at(iJet) );
         //if (tree_->GetBranchStatus("jetQglPtDrLog") ) j->SetQGLVar( "PtDrLog", bj -> qglPtDrLog -> at(iJet) );
         if (tree_->GetBranchStatus("jetQglAxis2") ) j->SetQGLVar( "axis2", bj -> qglAxis2 -> at(iJet) );
-        //if (tree_->GetBranchStatus("jetQglAxis1") ) j->SetQGLVar( "axis1", bj -> qglAxis1 -> at(iJet) );
+        if (tree_->GetBranchStatus("jetQglAxis1") ) j->SetQGLVar( "axis1", bj -> qglAxis1 -> at(iJet) );
         
 #ifdef VERBOSE
         if(VERBOSE>1)Log(__FUNCTION__,"DEBUG","-> B Correction");

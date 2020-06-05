@@ -33,6 +33,8 @@ class Jet : virtual public Object, virtual public SmearableComplex
     float deepbcut_ {-100};
 
     float nemf_,cemf_;
+    float nhmf_,chmf_;
+    float nm_,cm_;
 
     float bcorr_{1.}, bcorrunc_{1.};
 
@@ -101,8 +103,16 @@ class Jet : virtual public Object, virtual public SmearableComplex
     //float nemf_,cemf_;
     void SetNEMF(const float x) {nemf_=x;}
     void SetCEMF(const float x) {cemf_=x;}
+    void SetNHMF(const float x) {nhmf_=x;}
+    void SetCHMF(const float x) {chmf_=x;}
+    void SetNM(const float x) {nm_=x;}
+    void SetCM(const float x) {cm_=x;}
     inline float GetNEMF()const {return nemf_;}
     inline float GetCEMF()const {return cemf_;}
+    inline float GetNHMF()const {return nhmf_;}
+    inline float GetCM()const {return cm_;}
+    inline float GetNM()const {return nm_;}
+    inline float GetCHMF()const {return chmf_;}
 
     /// @brief constructor
     Jet() ; 
