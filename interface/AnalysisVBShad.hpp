@@ -276,6 +276,10 @@ protected:
 
     std::unique_ptr<JME::JetResolutionObject> jet_resolution;
     //std::unique_ptr<KinematicFit2> kf; 
+    
+    std::unique_ptr<KinematicFit>  kf_met; // for met
+    void do_kf_met();
+    TLorentzVector met_hem;
 };
 
 

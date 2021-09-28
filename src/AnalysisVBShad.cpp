@@ -3666,6 +3666,11 @@ int VBShadAnalysis::analyze(Event *e, string systname)
     } else {
         // events with MET in separate category
         if ( (doMETAnalysis or doMETAntiAnalysis) and e->GetMet().GetP4().Pt() < 250 ) return EVENT_NOT_USED;
+        if ( (doMETAnalysis or doMETAntiAnalysis) and year==2018) { //HEM
+            // if met is attributed to a hem jet,  then discard event
+            do_kf_met();
+            if ( met_hem.Pt()< 250 ) return EVENT_NOT_USED; // for now both data and MC. If we do only data, we can check if the energy of the jets goes up
+        }
         if ( (!doMETAnalysis and !doMETAntiAnalysis) and e->GetMet().GetP4().Pt() > 200 ) return EVENT_NOT_USED;
     }
 
@@ -4675,6 +4680,73 @@ int VBShadAnalysis::analyze(Event *e, string systname)
 
     if (VERBOSE)Log(__FUNCTION__,"DEBUG","end Analyze");
     return 0;
+}
+
+void VBShadAnalysis::do_kf_met(){
+    if (not kf_met) kf_met.reset(new KinematicFit);
+    kf_met->clear();
+    kf_met->genericType=1; // with met
+    kf_met->doNorm=false; // I'll do the normalization here and put it in lambda, as I already digest all the others
+    // P4 and Pt are corrected for systematics, GetP4Dirty no
+
+    TLorentzVector p4Sum ; // known components
+    float HT=0.;
+
+    // loop over jets 
+    for (auto & j : selectedJets){ //HIPM jets
+        if ( -1.57F <j->Phi()  and j->Phi() <-0.87F and -3.0F< j->Eta() and j->Eta() <-1.3F ) {
+           kf_met->p4.push_back(j->GetP4Dirty()); 
+           kf_met->sigma.push_back(0.2); // this is the relative uncertainty
+           HT+=j->GetP4Dirty().Pt();
+        }
+        else{
+            p4Sum += j->GetP4Dirty();
+            HT+=j->GetP4Dirty().Pt();
+        }
+        HT += j->GetP4Dirty().Pt();
+    } 
+    // loop over fatjets
+    for (auto & j : selectedFatJets){ //HIPM jets
+        if ( -1.57F <j->Phi()  and j->Phi() <-0.87F and -3.0F< j->Eta() and j->Eta() <-1.3F ) {
+           kf_met->p4.push_back(j->GetP4Dirty()); 
+           kf_met->sigma.push_back(0.2); // this is the relative uncertainty
+           HT+=j->GetP4Dirty().Pt();
+        }
+        else{
+            p4Sum += j->GetP4Dirty();
+            HT+=j->GetP4Dirty().Pt();
+        }
+        HT += j->GetP4Dirty().Pt();
+    } 
+
+    for (auto & j : selectedFatZbb){ //HIPM jets
+        if ( -1.57F <j->Phi()  and j->Phi() <-0.87F and -3.0F< j->Eta() and j->Eta() <-1.3F ) {
+           kf_met->p4.push_back(j->GetP4Dirty()); 
+           kf_met->sigma.push_back(0.2); // this is the relative uncertainty
+           HT+=j->GetP4Dirty().Pt();
+        }
+        else{
+            p4Sum += j->GetP4Dirty();
+            HT+=j->GetP4Dirty().Pt();
+        }
+        HT += j->GetP4Dirty().Pt();
+    } 
+
+    kf_met->H =p4Sum; 
+    kf_met->lambda = 1.0/ HT;  // mixing between met and sigmas
+
+    kf_met->runGeneric() ;
+
+    // kf_met.alpha  is the output that multiplies the jets
+    // new met -- as difference on the jets
+    float metx = e->GetMet().GetP4().Px();
+    float mety = e->GetMet().GetP4().Py();
+    for (unsigned i=0;i<kf_met->p4.size();++i){
+        // kf_met->alpha[i] > 1. force only positive corrections to jet energy
+        metx += kf_met->p4[i].Px() * (kf_met->alpha[i]-1.);
+        mety += kf_met->p4[i].Py() * (kf_met->alpha[i]-1.);
+    }
+    met_hem.SetPxPyPzE(metx,mety,0.,TMath::Sqrt(metx*metx+mety*mety));
 }
 
 void VBShadAnalysis::EndEvent(){
